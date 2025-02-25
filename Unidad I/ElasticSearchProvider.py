@@ -97,3 +97,4 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
+        
