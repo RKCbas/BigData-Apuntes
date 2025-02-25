@@ -37,4 +37,28 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
+        
+    def search_document(self, doc_id):
+        try:
+            response = self.connection.get(index=self.index, id=doc_id)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+    
+    def delete_document(self, doc_id):
+        try:
+            response = self.connection.delete(index=self.index, id=doc_id)  
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
     

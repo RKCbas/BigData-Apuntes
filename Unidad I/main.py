@@ -19,9 +19,17 @@ def main():
             "country": "USA"
         }
         
+        RESPONSE_LITERAL = "response: "
+        
         with ElasticSearchProvider() as es:
             response = es.insert_document("1", document)
-            print("response: ", response)
+            print(RESPONSE_LITERAL, response)
+
+            response = es.search_document("1")
+            print(RESPONSE_LITERAL, response)
+
+            response = es.delete_document("1")
+            print(RESPONSE_LITERAL, response)
         
 
     except Exception as e:
