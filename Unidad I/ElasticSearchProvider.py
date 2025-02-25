@@ -86,3 +86,14 @@ class ElasticSearchProvider:
                     })
             }
     
+    def delete_index(self):
+        try:
+            response = self.connection.indices.delete(index=self.index)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
