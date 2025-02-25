@@ -38,9 +38,33 @@ class ElasticSearchProvider:
                     })
             }
         
-    def search_document(self, doc_id):
+    def get_document(self, doc_id):
         try:
             response = self.connection.get(index=self.index, id=doc_id)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+    
+    def search_document(self, query):
+        try:
+            response = self.connection.search(index=self.index, body=query)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+    
+    def update_document(self, doc_id, document):
+        try:
+            response = self.connection.update(index=self.index, id=doc_id, body=document)
             return response
         except Exception as e:
             return {

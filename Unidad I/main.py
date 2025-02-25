@@ -25,7 +25,23 @@ def main():
             response = es.insert_document("1", document)
             print(RESPONSE_LITERAL, response)
 
-            response = es.search_document("1")
+            response = es.get_document("1")
+            print(RESPONSE_LITERAL, response)
+
+            response = es.update_document("1", {
+                "doc": {
+                    "age": 26
+                }
+            })
+            print(RESPONSE_LITERAL, response)
+
+            response = es.search_document({
+                "query": {
+                    "match": {
+                        "name": "John Doe"
+                    }
+                }
+            })
             print(RESPONSE_LITERAL, response)
 
             response = es.delete_document("1")
