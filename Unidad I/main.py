@@ -146,12 +146,16 @@ def main():
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Delete a document by its id
-            response = es.delete_document("1")
             print("Delete Document Response:")
+            response = es.delete_document("1")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.delete_document("2")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.delete_document("3")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.delete_document("4")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
         
-            
-
     except Exception as e:
         print(f"An error occurred: {e}")
 
