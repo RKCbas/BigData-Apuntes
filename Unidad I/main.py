@@ -1,11 +1,12 @@
 from ElasticSearchProvider import ElasticSearchProvider
+import json
 
 def main():
     try:
         # Create an instance of the ElasticSearchProvider class
         # and establish a connection with the ElasticSearch server
         es_handler = ElasticSearchProvider()
-        print("es_handler: ", es_handler)
+        print("es_handler: ", es_handler, "\n")
 
         # Insert a document into the index
         document = {
@@ -22,13 +23,21 @@ def main():
         RESPONSE_LITERAL = "response: "
         
         with ElasticSearchProvider() as es:
+            
+            # **Show all the indices**
+            # response = es.show_all_indices()
+            # print("Show All Indices Response:")
+            # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+
             # Insert a document into the index
             response = es.insert_document("1", document)
-            print(RESPONSE_LITERAL, response)
+            print("Insert Document Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Get the document by its id
             response = es.get_document("1")
-            print(RESPONSE_LITERAL, response)
+            print("Get Document Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Update the document
             response = es.update_document("1", {
@@ -36,7 +45,8 @@ def main():
                     "age": 26
                 }
             })
-            print(RESPONSE_LITERAL, response)
+            print("Update Document Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Search for a document by a specific field
             response = es.search_document({
@@ -46,13 +56,14 @@ def main():
                     }
                 }
             })
-            print(RESPONSE_LITERAL, response)
+            print("Search Document by Field Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
-            # Search for a document by a range of values
             # gt: greater than
             # gte: greater than or equal
             # lt: less than
             # lte: less than or equal
+            # Search for a document by a range of values
             response = es.search_document({
                 "query": {
                     "range": {
@@ -62,7 +73,8 @@ def main():
                     }
                 }
             })
-            print(RESPONSE_LITERAL, response)
+            print("Search Document by Range Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Search for all documents in the index
             response = es.search_document({
@@ -70,15 +82,18 @@ def main():
                     "match_all": {}
                 }
             })
-            print(RESPONSE_LITERAL, response)
+            print("Search All Documents Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Delete a document by its id
-            response = es.delete_document("1")
-            print(RESPONSE_LITERAL, response)
+            # response = es.delete_document("1")
+            # print("Delete Document Response:")
+            # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
         
+            
 
     except Exception as e:
-        print(f"An error occured: {e}")
+        print(f"An error occurred: {e}")
 
 if __name__ == "__main__":
     main()

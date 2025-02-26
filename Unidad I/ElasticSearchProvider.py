@@ -97,4 +97,22 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
-        
+    
+    def show_all_indices(self):
+        try:
+            response = self.connection.indices.get_alias(index="*")
+            if not response:
+                return {
+                    "StatusCode": 404,
+                    "body": json.dumps({
+                        "message": "No indices found"
+                    })
+                }
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
