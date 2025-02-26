@@ -1,5 +1,6 @@
 from ElasticSearchProvider import ElasticSearchProvider
 import json
+import time
 
 def main():
     try:
@@ -8,8 +9,8 @@ def main():
         es_handler = ElasticSearchProvider()
         print("es_handler: ", es_handler, "\n")
 
-        # Insert a document into the index
-        document = {
+        # Crear documentos de prueba
+        document1 = {
             "name": "John Doe",
             "first_name": "John",
             "last_name": "Doe",
@@ -17,6 +18,39 @@ def main():
             "ocupation": "Software Developer",
             "salary": 1000,
             "city": "New York",
+            "country": "USA"
+        }
+
+        document2 = {
+            "name": "Jane Smith",
+            "first_name": "Jane",
+            "last_name": "Smith",
+            "age": 30,
+            "ocupation": "Data Scientist",
+            "salary": 1200,
+            "city": "San Francisco",
+            "country": "USA"
+        }
+
+        document3 = {
+            "name": "Alice Johnson",
+            "first_name": "Alice",
+            "last_name": "Johnson",
+            "age": 28,
+            "ocupation": "Product Manager",
+            "salary": 1100,
+            "city": "Seattle",
+            "country": "USA"
+        }
+
+        document4 = {
+            "name": "Bob Brown",
+            "first_name": "Bob",
+            "last_name": "Brown",
+            "age": 35,
+            "ocupation": "DevOps Engineer",
+            "salary": 1300,
+            "city": "Austin",
             "country": "USA"
         }
         
@@ -30,9 +64,16 @@ def main():
             # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Insert a document into the index
-            response = es.insert_document("1", document)
             print("Insert Document Response:")
+            response = es.insert_document("1", document1)            
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.insert_document("1", document2)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.insert_document("1", document3)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.insert_document("1", document4)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            time.sleep(1)
 
             # Get the document by its id
             response = es.get_document("1")
@@ -47,6 +88,25 @@ def main():
             })
             print("Update Document Response:")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            time.sleep(1)
+
+            # Update the document by a query
+            response = es.update_document_by_query({
+                "match": {
+                    "name": "John Doe"
+                }
+            }, {
+                "source": "ctx._source.age += 1"
+            })
+
+            # Update the document by a query
+            response = es.update_document_by_query({
+                "match": {
+                    "name": "Jane Smith"
+                }
+            }, {
+                "source": "ctx._source[age] += 1"
+            })
 
             # Search for a document by a specific field
             response = es.search_document({
@@ -86,9 +146,9 @@ def main():
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Delete a document by its id
-            # response = es.delete_document("1")
-            # print("Delete Document Response:")
-            # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            response = es.delete_document("1")
+            print("Delete Document Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
         
             
 

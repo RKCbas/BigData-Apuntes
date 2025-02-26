@@ -74,6 +74,18 @@ class ElasticSearchProvider:
                     })
             }
     
+    def update_document_by_query(self, query, script):
+        try:
+            response = self.connection.update_by_query(index=self.index, body={"query" : query, "script" : script}, conflicts='proceed')
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+    
     def delete_document(self, doc_id):
         try:
             response = self.connection.delete(index=self.index, id=doc_id)  
@@ -86,9 +98,9 @@ class ElasticSearchProvider:
                     })
             }
     
-    def delete_index(self):
+    def create_index(self):
         try:
-            response = self.connection.indices.delete(index=self.index)
+            response = self.connection.indices.create(index=self.index)
             return response
         except Exception as e:
             return {
@@ -97,7 +109,7 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
-    
+
     def show_all_indices(self):
         try:
             response = self.connection.indices.get_alias(index="*")
@@ -116,3 +128,17 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
+
+    def delete_index(self):
+        try:
+            response = self.connection.indices.delete(index=self.index)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+    
+    
