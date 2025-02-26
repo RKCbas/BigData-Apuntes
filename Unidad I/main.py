@@ -88,7 +88,6 @@ def main():
             })
             print("Update Document Response:")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            time.sleep(1)
 
             # Update the document by a query
             response = es.update_document_by_query({
@@ -101,12 +100,23 @@ def main():
 
             # Update the document by a query
             response = es.update_document_by_query({
+                #query
                 "match": {
                     "name": "Jane Smith"
                 }
             }, {
+                #script
                 "source": "ctx._source[age] += 1"
             })
+
+            # Bulk update documents by a query
+            response = es.bulk_update_documents("John", "Doe", 
+                {"age": 30,
+                "salary": 1500}
+            )
+            print("Bulk Update Documents Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            
 
             # Search for a document by a specific field
             response = es.search_document({

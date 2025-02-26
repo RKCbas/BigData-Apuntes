@@ -1,5 +1,6 @@
 import json
 from elasticsearch import *
+import time
 
 class ElasticSearchProvider:
     
@@ -65,6 +66,7 @@ class ElasticSearchProvider:
     def update_document(self, doc_id, document):
         try:
             response = self.connection.update(index=self.index, id=doc_id, body=document)
+            time.sleep(1)
             return response
         except Exception as e:
             return {
@@ -77,6 +79,42 @@ class ElasticSearchProvider:
     def update_document_by_query(self, query, script):
         try:
             response = self.connection.update_by_query(index=self.index, body={"query" : query, "script" : script}, conflicts='proceed')
+            time.sleep(1)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+        
+    def bulk_update_documents(self, firstname, lastname, updated_fields):
+        try:
+            query = {
+                "script": {
+                    "source": "; ".join([f"ctx._source.{field} = params['{field}']" for field in updated_fields]),
+                    "params": updated_fields
+                },
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "match": {
+                                    "firstname": firstname
+                                }
+                            },
+                            {
+                                "match": {
+                                    "lastname": lastname
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            response = self.connection.update_by_query(index=self.index, body=query, conflicts='proceed')
+            time.sleep(1)
             return response
         except Exception as e:
             return {
