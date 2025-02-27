@@ -1,6 +1,5 @@
 from ElasticSearchProvider import ElasticSearchProvider
-import json
-import time
+import json, time
 
 def main():
     try:
@@ -9,7 +8,7 @@ def main():
         es_handler = ElasticSearchProvider()
         print("es_handler: ", es_handler, "\n")
 
-        # Crear documentos de prueba
+        # Test documents
         document1 = {
             "name": "John Doe",
             "first_name": "John",
@@ -165,7 +164,8 @@ def main():
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
             response = es.delete_document("4")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-        
+            
+
     except Exception as e:
         print(f"An error occurred: {e}")
 
