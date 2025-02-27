@@ -127,6 +127,7 @@ class ElasticSearchProvider:
     def delete_document(self, doc_id):
         try:
             response = self.connection.delete(index=self.index, id=doc_id)  
+            time.sleep(1)
             return response
         except Exception as e:
             return {
@@ -136,6 +137,38 @@ class ElasticSearchProvider:
                     })
             }
     
+    def bulk_delete_documents(self, firstname, lastname):
+        try:
+            query = {
+                "query": {
+                    "bool": {
+                        "must": [
+                            {
+                                "match": {
+                                    "firstname": firstname
+                                }
+                            },
+                            {
+                                "match": {
+                                    "lastname": lastname
+                                }
+                            }
+                        ]
+                    }
+                }
+            }
+            response = self.connection.delete_by_query(index=self.index, body=query)
+            time.sleep(1)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+
+
     def create_index(self):
         try:
             response = self.connection.indices.create(index=self.index)
