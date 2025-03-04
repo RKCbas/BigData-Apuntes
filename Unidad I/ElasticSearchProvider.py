@@ -1,9 +1,10 @@
 import json, time
 from elasticsearch import *
+from elasticsearch import helpers
 
 class ElasticSearchProvider:
     
-    def __init__(self):
+    def __init__(self, index="person"):
         self.host = "http://localhost:9200"
         #   self.user = str(user)
         #   self.password = str(password)
@@ -141,6 +142,19 @@ class ElasticSearchProvider:
                     })
             }
         
+    def delete_all_documents(self):
+        try:
+            response = self.connection.delete_by_query(index=self.index, body={"query": {"match_all": {}}})
+            time.sleep(1)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+        
     def bulk_delete_documents(self, firstname, lastname):
         try:
             query = {
@@ -203,4 +217,22 @@ class ElasticSearchProvider:
                     })
             }
     
-    
+    def load_json_file(self, file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:
+                documents = json.load(file)
+                if isinstance(documents, dict):
+                    documents = [documents]
+                bulk_data = [
+                    {"_index": self.index, "_source": doc}
+                    for doc in documents
+                ]
+                helpers.bulk(self.connection, bulk_data)
+                return f"{len(bulk_data)} documents inserted in {self.index}"
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                })
+            }

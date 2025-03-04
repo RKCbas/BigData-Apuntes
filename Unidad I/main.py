@@ -62,6 +62,11 @@ def main():
             # print("Show All Indices Response:")
             # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
+            # Load a JSON file into the index
+            print("Load JSON File Response:")
+            response = es.load_json_file("./Apuntes/Unidad I/persona.json")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response, indent=4)}\n")
+
             # Insert a document into the index
             print("Insert Document Response:")
             response = es.insert_document("1", document1)            
@@ -158,11 +163,11 @@ def main():
             print("Delete Document Response:")
             response = es.delete_document("1")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.delete_document("2")
+            
+            response = es.delete_all_documents()
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.delete_document("3")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.delete_document("4")
+
+            response = es.delete_index()
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
             
 
