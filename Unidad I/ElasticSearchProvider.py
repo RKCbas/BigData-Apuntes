@@ -8,7 +8,7 @@ class ElasticSearchProvider:
         self.host = "http://localhost:9200"
         #   self.user = str(user)
         #   self.password = str(password)
-        self.index = "person"
+        self.index = index
         self.index_type = "_doc"
         self.connection = Elasticsearch(self.host)
 
@@ -229,10 +229,25 @@ class ElasticSearchProvider:
                 ]
                 helpers.bulk(self.connection, bulk_data)
                 return f"{len(bulk_data)} documents inserted in {self.index}"
+        except json.JSONDecodeError as e:
+            return {
+                "StatusCode": 400,
+                "body": json.dumps({
+                    "message": f"Error decoding JSON: {str(e)}"
+                })
+            }
+        except FileNotFoundError as e:
+            return {
+                "StatusCode": 404,
+                "body": json.dumps({
+                    "message": f"File not found: {str(e)}"
+                })
+            }
         except Exception as e:
             return {
                 "StatusCode": 500,
                 "body": json.dumps({
-                    "message": str(e)
+                    "message": f"An error occurred: {str(e)}"
                 })
             }
+

@@ -63,26 +63,26 @@ def main():
             # print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
 
             # Load a JSON file into the index
-            print("Load JSON File Response:")
+            print("Load Persona JSON File Response:")
             response = es.load_json_file("./Apuntes/Unidad I/persona.json")
             print(f"{RESPONSE_LITERAL} {json.dumps(response, indent=4)}\n")
 
             # Insert a document into the index
             print("Insert Document Response:")
             response = es.insert_document("1", document1)            
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.insert_document("1", document2)
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.insert_document("1", document3)
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
-            response = es.insert_document("1", document4)
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
+            response = es.insert_document("2", document2)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
+            response = es.insert_document("3", document3)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
+            response = es.insert_document("4", document4)
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
             time.sleep(1)
 
             # Get the document by its id
             response = es.get_document("1")
             print("Get Document Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             # Update the document
             response = es.update_document("1", {
@@ -91,7 +91,7 @@ def main():
                 }
             })
             print("Update Document Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             # Update the document by a query
             response = es.update_document_by_query({
@@ -119,7 +119,7 @@ def main():
                 "salary": 1500}
             )
             print("Bulk Update Documents Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
             
 
             # Search for a document by a specific field
@@ -131,7 +131,7 @@ def main():
                 }
             })
             print("Search Document by Field Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             # gt: greater than
             # gte: greater than or equal
@@ -148,7 +148,7 @@ def main():
                 }
             })
             print("Search Document by Range Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             # Search for all documents in the index
             response = es.search_document({
@@ -157,18 +157,18 @@ def main():
                 }
             })
             print("Search All Documents Response:")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             # Delete a document by its id
             print("Delete Document Response:")
             response = es.delete_document("1")
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
             
             response = es.delete_all_documents()
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
             response = es.delete_index()
-            print(f"{RESPONSE_LITERAL} {json.dumps(response.body, indent=4)}\n")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
             
 
     except Exception as e:
