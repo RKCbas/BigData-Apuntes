@@ -14,7 +14,7 @@ def main():
 
             # Load Pokemon JSON file into the index
             print("Load Pokemon JSON File Response:")
-            response = es.load_json_file("./Apuntes/Unidad I/pokemon.json")
+            response = es.load_json_file("./Unidad I/pokemon.json")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
 

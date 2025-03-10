@@ -1,0 +1,16 @@
+{
+    "mappings": {
+        "properties": {
+            "id": {"type": "keyword"},
+            "pais": {"type": "keyword"},
+            "edad": {"type": "integer"},
+            "genero": {"type": "keyword"},
+            "fecha_reporte": {"type": "date", "format": "yyyy-MM-dd"},
+            "casos_confirmados": {"type": "integer"},
+            "muertes": {"type": "integer"},
+            "recuperados": {"type": "integer"},
+            "hospitalizados": {"type": "boolean"},
+            "ubicacion": {"type": "geo_point"}
+        }
+    }
+}
