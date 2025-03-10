@@ -64,7 +64,7 @@ def main():
 
             # Load a JSON file into the index
             print("Load Persona JSON File Response:")
-            response = es.load_json_file("./Apuntes/Unidad I/persona.json")
+            response = es.load_json_file("./Unidad I/persona.json")
             print(f"{RESPONSE_LITERAL} {json.dumps(response, indent=4)}\n")
 
             # Insert a document into the index
