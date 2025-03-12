@@ -2,10 +2,10 @@ import pandas as pd
 
 def main():
     # Load
-    df = pd.read_csv("./Proyecto Unidad I/mexico_covid19_263mil.csv")
+    df = pd.read_csv("./Proyecto Unidad I/covid-19.csv")
 
-    # Convert to Json
-    df.to_json("Datos.json", orient="records", lines=True)
+    # Convert to Json and save it as a file
+    df.to_json("./Proyecto Unidad I/Datos.json", orient="records", lines=True)
 
     print(f"data frame: \n {df}")
 
