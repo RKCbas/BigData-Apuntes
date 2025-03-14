@@ -284,6 +284,13 @@ def main():
             }
         }
 
+        if df["RESULTADO"].isin(['1', '2']).any():
+            df["RESULTADO"] = df["RESULTADO"].replace({'1': 'Positivo', '2': 'Negativo'})
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=True)
+            print("Valores de 'RESULTADO' actualizados")
+
             
     except Exception as e:
         print(f"An error occurred: {e}")
