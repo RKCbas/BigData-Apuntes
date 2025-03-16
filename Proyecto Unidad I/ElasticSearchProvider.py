@@ -46,6 +46,18 @@ class ElasticSearchProvider:
                     "message": str(e)
                     })
             }
+        
+    def get_mapping(self):
+        try:
+            response = self.connection.indices.get_mapping(index=self.index)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
 
     def insert_document(self, doc_id, document):
         try:

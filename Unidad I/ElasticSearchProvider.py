@@ -27,6 +27,38 @@ class ElasticSearchProvider:
     def __exit__(self, exception_type, exception_val, exception_traceback):
         self.connection.close()
     
+    def create_index(self, mapping):
+        try:
+            if not self.connection.indices.exists(index=self.index):
+                response = self.connection.indices.create(index=self.index, body=mapping)
+            else:
+                response = {
+                    "StatusCode": 400,
+                    "body": json.dumps({
+                        "message": f"Index {self.index} already exists"
+                    })
+                }
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+        
+    def get_mapping(self):
+        try:
+            response = self.connection.indices.get_mapping(index=self.index)
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+
     def insert_document(self, doc_id, document):
         try:
             response = self.connection.index(index=self.index, id=doc_id, body=document)
