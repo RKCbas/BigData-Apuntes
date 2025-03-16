@@ -83,6 +83,18 @@ class ElasticSearchProvider:
                     })
             }
     
+    def get_all_documents(self):
+        try:
+            response = self.connection.search(index=self.index, body={"query": {"match_all": {}}})
+            return response
+        except Exception as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": str(e)
+                    })
+            }
+
     def search_document(self, query):
         try:
             response = self.connection.search(index=self.index, body=query)

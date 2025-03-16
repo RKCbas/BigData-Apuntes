@@ -416,8 +416,6 @@ def main():
             df.to_json(json_file_path, orient="records", lines=True)
             print("Valores de 'NACIONALIDAD' actualizados")
         
-        
-            
             
     except Exception as e:
         print(f"An error occurred: {e}")
