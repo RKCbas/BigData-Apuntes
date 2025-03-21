@@ -1,6 +1,7 @@
-import json, time
+import json, time, pandas as pd
 from elasticsearch import *
 from elasticsearch import helpers
+from elasticsearch import Elasticsearch, ConnectionError
 
 class ElasticSearchProvider:
     
@@ -10,12 +11,30 @@ class ElasticSearchProvider:
         #   self.password = str(password)
         self.index = index
         self.index_type = "_doc"
-        self.connection = Elasticsearch(self.host)
+        # Configurar timeout, reintentos y retry_on_timeout
+        self.connection = Elasticsearch(
+            self.host,
+            timeout=30,  # Tiempo de espera en segundos
+            max_retries=3,  # Número máximo de reintentos
+            retry_on_timeout=True  # Reintentar si hay un timeout
+        )
 
     def __enter__(self):
         try:
-            self.connection = Elasticsearch(self.host)
+            self.connection = Elasticsearch(
+                self.host,
+                timeout=30,
+                max_retries=3,
+                retry_on_timeout=True
+            )
             return self
+        except ConnectionError as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": f"Connection error: {str(e)}"
+                })
+            }
         except Exception as e:
             return {
                 "StatusCode": 500,
@@ -261,23 +280,34 @@ class ElasticSearchProvider:
                     })
             }
     
-    def load_json_file(self, file_path):
+    def load_json_file(self, file_path, batch_size=1000):
         try:
-            with open(file_path, "r", encoding="utf-8") as file:
-                documents = json.load(file)
-                if isinstance(documents, dict):
-                    documents = [documents]
+            # Leer el archivo JSON usando pandas
+            df = pd.read_json(file_path, orient="records", lines=False)
+
+            # Convertir el DataFrame a una lista de diccionarios
+            documents = df.to_dict(orient="records")
+            
+            # Dividir los documentos en lotes
+            for i in range(0, len(documents), batch_size):
+                batch = documents[i:i + batch_size]
+                
+                # Preparar los datos para la operación bulk
                 bulk_data = [
                     {"_index": self.index, "_source": doc}
-                    for doc in documents
+                    for doc in batch
                 ]
+                
+                # Insertar los documentos en Elasticsearch
                 helpers.bulk(self.connection, bulk_data)
-                return f"{len(bulk_data)} documents inserted in {self.index}"
-        except json.JSONDecodeError as e:
+            
+            return f"{len(documents)} documents inserted in {self.index}"
+        
+        except ValueError as e:
             return {
                 "StatusCode": 400,
                 "body": json.dumps({
-                    "message": f"Error decoding JSON: {str(e)}"
+                    "message": f"Error reading JSON with pandas: {str(e)}"
                 })
             }
         except FileNotFoundError as e:
@@ -287,6 +317,13 @@ class ElasticSearchProvider:
                     "message": f"File not found: {str(e)}"
                 })
             }
+        except ConnectionError as e:
+            return {
+                "StatusCode": 500,
+                "body": json.dumps({
+                    "message": f"Connection error: {str(e)}"
+                })
+            }
         except Exception as e:
             return {
                 "StatusCode": 500,
@@ -294,4 +331,3 @@ class ElasticSearchProvider:
                     "message": f"An error occurred: {str(e)}"
                 })
             }
-
