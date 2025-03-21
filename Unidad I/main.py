@@ -159,6 +159,10 @@ def main():
             print("Search All Documents Response:")
             print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
 
+            response = es.get_mapping()
+            print("Get Mapping Response:")
+            print(f"{RESPONSE_LITERAL} {json.dumps(response.body if hasattr(response, 'body') else response, indent=4)}\n")
+
             # Delete a document by its id
             print("Delete Document Response:")
             response = es.delete_document("1")

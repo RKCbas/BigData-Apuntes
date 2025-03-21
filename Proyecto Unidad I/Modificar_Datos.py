@@ -1,48 +1,147 @@
 import pandas as pd
 import os, json
-from estados import municipalities_per_state
+
+ENTIDADES_DICT = {
+    1: "AGUASCALIENTES",
+    2: "BAJA CALIFORNIA",
+    3: "BAJA CALIFORNIA SUR",
+    4: "CAMPECHE",
+    5: "COAHUILA DE ZARAGOZA",
+    6: "COLIMA",
+    7: "CHIAPAS",
+    8: "CHIHUAHUA",
+    9: "CIUDAD DE MÉXICO",
+    10: "DURANGO",
+    11: "GUANAJUATO",
+    12: "GUERRERO",
+    13: "HIDALGO",
+    14: "JALISCO",
+    15: "MÉXICO",
+    16: "MICHOACÁN DE OCAMPO",
+    17: "MORELOS",
+    18: "NAYARIT",
+    19: "NUEVO LEÓN",
+    20: "OAXACA",
+    21: "PUEBLA",
+    22: "QUERÉTARO",
+    23: "QUINTANA ROO",
+    24: "SAN LUIS POTOSÍ",
+    25: "SINALOA",
+    26: "SONORA",
+    27: "TABASCO",
+    28: "TAMAULIPAS",
+    29: "TLAXCALA",
+    30: "VERACRUZ DE IGNACIO DE LA LLAVE",
+    31: "YUCATÁN",
+    32: "ZACATECAS",
+    36: "ESTADOS UNIDOS MEXICANOS",
+    97: "NO APLICA",
+    98: "SE IGNORA",
+    99: "NO ESPECIFICADO"
+}
+
+def obtener_nombre_entidad(entidad_id) -> str:
+    """
+    Devuelve el nombre de la entidad correspondiente al ID proporcionado.
+    Si el ID no está en el diccionario, devuelve el ID original.
+    """
+    try:
+        return ENTIDADES_DICT.get(entidad_id, entidad_id)
+    except Exception as e:
+        print(f"Error al obtener el nombre de la entidad para ID {entidad_id}: {e}")
+        return entidad_id
 
 def main():
     
     json_file_path = "./Proyecto Unidad I/Datos.json"
-    csv_file_path = "./Proyecto Unidad I/covid-19.csv"
+    csv_file_path = "./Proyecto Unidad I/COVID19MEXICO2020.csv"
+    excel_catalog_path = "./Proyecto Unidad I/Catalogos.xlsx"
 
     try:
 
         # Check if the JSON file already exists
         if not os.path.exists(json_file_path):
-            # Load
-            df = pd.read_csv(csv_file_path)
 
-            # Convert to Json and save it as a file
-            df.to_json(json_file_path, orient="records", lines=True)
+            # Cargar los catálogos de entidades y municipios desde el archivo Excel
+            entidades_df = pd.read_excel(excel_catalog_path, sheet_name="Catálogo de ENTIDADES")
+            municipios_df = pd.read_excel(excel_catalog_path, sheet_name="Catálogo MUNICIPIOS")
+
+            # Renombrar columnas para facilitar el merge
+            entidades_df.rename(columns={"CLAVE_ENTIDAD": "ENTIDAD_RES", "ENTIDAD_FEDERATIVA": "NOMBRE_ENTIDAD"}, inplace=True)
+            municipios_df.rename(columns={"CLAVE_ENTIDAD": "ENTIDAD_RES", "CLAVE_MUNICIPIO": "MUNICIPIO_RES", "MUNICIPIO": "NOMBRE_MUNICIPIO"}, inplace=True)
+
+            # delete ABREVIATURA column from entidades_df
+            entidades_df.drop(columns=["ABREVIATURA"], inplace=True)
+
+            # Definir el mapeo de tipos de datos para las columnas
+            dtype_mapping = {
+                "PAIS_NACIONALIDAD": "str",  # Columna 38
+                "PAIS_ORIGEN": "str",       # Columna 39
+            }
+
+            # Load the CSV file into a DataFrame
+            df = pd.read_csv(csv_file_path, dtype=dtype_mapping)
+
+            # Hacer merge para agregar los nombres de entidad y municipio
+            df = df.merge(entidades_df, on="ENTIDAD_RES", how="left")
+            df = df.merge(municipios_df, on=["ENTIDAD_RES", "MUNICIPIO_RES"], how="left")
+
+            # Crear el campo RES como un diccionario
+            df["RES"] = df.apply(
+                lambda row: {
+                    "IS_ENTIDAD": row["ENTIDAD_RES"],
+                    "ENTIDAD": row["NOMBRE_ENTIDAD"],
+                    "ID_MUNICIPIO": row["MUNICIPIO_RES"],
+                    "MUNICIPIO": row["NOMBRE_MUNICIPIO"]
+                },
+                axis=1
+            )
+
+            # delete the columns "ENTIDAD_RES", "MUNICIPIO_RES", "NOMBRE_ENTIDAD", "NOMBRE_MUNICIPIO"
+            df.drop(columns=["ENTIDAD_RES", "MUNICIPIO_RES", "NOMBRE_ENTIDAD", "NOMBRE_MUNICIPIO"], inplace=True)
+            
+            # Leave only the first 1000000 rows
+            df = df.head(1000000)
+            
+            # Save the DataFrame to a JSON file
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Archivo JSON creado")
+            
+            # Load the JSON file into a DataFrame
+            df = pd.read_json(json_file_path, orient="records", lines=False)
+
+            # Change "ENTIDAD_UM", "ENTIDAD_NAC" to a dictionary of the id and the name of the entity
+            if "ENTIDAD_UM" in df.columns:
+                df["ENTIDAD_UM"] = df["ENTIDAD_UM"].apply(
+                    lambda entidad_id: {
+                        "ID": entidad_id,
+                        "NOMBRE": obtener_nombre_entidad(int(entidad_id)) if pd.notnull(entidad_id) else None
+                    }
+                )
+
+            if "ENTIDAD_NAC" in df.columns:
+                df["ENTIDAD_NAC"] = df["ENTIDAD_NAC"].apply(
+                    lambda entidad_id: {
+                        "ID": entidad_id,
+                        "NOMBRE": obtener_nombre_entidad(int(entidad_id)) if pd.notnull(entidad_id) else None
+                    }
+                )
+
+            # Guardar el DataFrame modificado en el archivo JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Archivo JSON actualizado con los cambios en 'ENTIDAD_UM' y 'ENTIDAD_NAC'")
         
-        # Load the Json file
-        df = pd.read_json(json_file_path, orient="records", lines=True)
+        # Load the JSON file into a DataFrame
+        df = pd.read_json(json_file_path, orient="records", lines=False)
 
-        # Leave only 1 ID
-        if df.columns[0] != 'ID_REGISTRO':
-            # Drop the 'id' column
-            df = df.drop(columns=['id'])
-            
-            # Reorder columns to move 'ID_REGISTRO' to the beginning
-            columns = ['ID_REGISTRO'] + [col for col in df.columns if col != 'ID_REGISTRO']
-            df = df[columns]
-            
-            # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
-            print("Identificador de registro actualizado")
-
-        if 'PAIS_ORIGEN' in df.columns:
-            # Drop the 'PAIS_ORIGEN' column
-            df = df.drop(columns=['PAIS_ORIGEN'])
-            # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
-            print("Identificador de registro actualizado")
+        # Check and convert 'PAIS_NACIONALIDAD' column values
+        if "97" in df["PAIS_ORIGEN"].values:
+            df["PAIS_ORIGEN"] = 'No aplica'
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'PAIS_ORIGEN' actualizados")
 
         # List of date columns
         date_columns = [
-            'FECHA_ARCHIVO',
             'FECHA_ACTUALIZACION',
             'FECHA_INGRESO',
             'FECHA_SINTOMAS',
@@ -61,184 +160,112 @@ def main():
                     df[date_column] = pd.to_datetime(df[date_column], errors='coerce').dt.strftime('%m-%d-%Y')
 
                     # Save the modified DataFrame back to JSON
-                    df.to_json(json_file_path, orient="records", lines=True)
+                    df.to_json(json_file_path, orient="records", lines=False, indent=4)
                     print(f"Formato de fecha actualizado para la columna {date_column}")
         
-        # Dictionary for correcting country names
-        corrections = {
-                '99': 'Sin Identificar',
-                'M\u00e9xico': 'México',
-                'Estados Unidos de AmÃ©rica': 'Estados Unidos de América',
-                'EspaÃ±a': 'España',
-                'RepÃºblica de Honduras': 'República de Honduras',
-                'Gran BretaÃ±a (Reino Unido)': 'Gran Bretaña (Reino Unido)',
-                'CanadÃ¡': 'Canadá',
-                'Principado de MÃ³naco': 'Principado de Mónaco',
-                'RepÃºblica de Costa Rica': 'República de Costa Rica',
-                'RepÃºblica Oriental del Uruguay': 'República Oriental del Uruguay',
-                'RepÃºblica de PanamÃ¡': 'República de Panamá',
-                'RepÃºblica de Mauricio': 'República de Mauricio',
-                'RepÃºblica de Corea': 'República de Corea',
-                'RepÃºblica de Angola': 'República de Angola',
-                'RepÃºblica Checa y RepÃºblica Eslovaca': 'República Checa y República Eslovaca',
-                'IrÃ¡n': 'Irán',
-                'HaitÃ­': 'Haití',
-                'Costa de Marfil': 'Costa de Marfil',
-                'JapÃ³n': 'Japón',
-                'HungrÃ\xada': 'Hungría',
-                'PerÃº': 'Perú',
-                'Ucrania': 'Ucrania',
-                'Polonia': 'Polonia',
-                'República Dominicana': 'República Dominicana',
-                'Suiza': 'Suiza',
-                'India': 'India',
-                'Guatemala': 'Guatemala',
-                'Principado de Mónaco': 'Principado de Mónaco',
-                'Zona Neutral': 'Zona Neutral',
-                'Brasil': 'Brasil',
-                'Micronesia': 'Micronesia',
-                'Commonwealth de Dominica': 'Commonwealth de Dominica',
-                'Australia': 'Australia',
-                'Nicaragua': 'Nicaragua',
-                'Noruega': 'Noruega',
-                'Rumania': 'Rumania',
-                'Chile': 'Chile',
-                'Rusia': 'Rusia',
-                'Malasia': 'Malasia',
-                'Israel': 'Israel',
-                'Trieste': 'Trieste',
-                'Holanda': 'Holanda',
-                'AscensiÃ³n': 'Ascensión',
-                'Egipto': 'Egipto',
-                'Suecia': 'Suecia',
-                'Zimbabwe': 'Zimbabwe',
-                'Grecia': 'Grecia',
-                'ArchipiÃ©lago de Svalbard': 'Archipiélago de Svalbard',
-                'Argelia': 'Argelia',
-                'Belice': 'Belice',
-                'Austria': 'Austria',
-                'TurquÃ\xada': 'Turquía',
-                'PakistÃ¡n': 'Pakistán',
-                'CamerÃºn': 'Camerún',
-                'Eritrea': 'Eritrea',
-                'Islandia': 'Islandia',
-                'Paraguay': 'Paraguay',
-                'Finlandia': 'Finlandia',
-                'Letonia': 'Letonia',
-                'Bangladesh': 'Bangladesh',
-                'Eslovenia': 'Eslovenia',
-                'Filipinas': 'Filipinas'
-            }
-
-
-        if 'PAIS_NACIONALIDAD' in df.columns:
-            
-            if df['PAIS_NACIONALIDAD'].isin(corrections.keys()).any():
-                df['PAIS_NACIONALIDAD'] = df['PAIS_NACIONALIDAD'].replace(corrections)
-
-                # Check if the last 4 characters are 'xico' and replace with 'México'
-                df.loc[df['PAIS_NACIONALIDAD'].str.endswith('xico'), 'PAIS_NACIONALIDAD'] = 'México'
-
-                # Save the modified DataFrame back to JSON
-                df.to_json(json_file_path, orient="records", lines=True)
-                print("Valores de 'PAIS_NACIONALIDAD' corregidos")
         
-        state_columns = [
-            'ENTIDAD_NAC',
-            'ENTIDAD_RES',
-            'ENTIDAD_UM',
-            'ENTIDAD_REGISTRO'
-        ]
-
-        state_codes = {
-            1: 'AGUASCALIENTES',
-            2: 'BAJA CALIFORNIA',
-            3: 'BAJA CALIFORNIA SUR',
-            4: 'CAMPECHE',
-            5: 'COAHUILA DE ZARAGOZA',
-            6: 'COLIMA',
-            7: 'CHIAPAS',
-            8: 'CHIHUAHUA',
-            9: 'CIUDAD DE MEXICO',
-            10: 'DURANGO',
-            11: 'GUANAJUATO',
-            12: 'GUERRERO',
-            13: 'HIDALGO',
-            14: 'JALISCO',
-            15: 'MEXICO',
-            16: 'MICHOACAN DE OCAMPO',
-            17: 'MORELOS',
-            18: 'NAYARIT',
-            19: 'NUEVO LEON',
-            20: 'OAXACA',
-            21: 'PUEBLA',
-            22: 'QUERETARO',
-            23: 'QUINTANA ROO',
-            24: 'SAN LUIS POTOSI',
-            25: 'SINALOA',
-            26: 'SONORA',
-            27: 'TABASCO',
-            28: 'TAMAULIPAS',
-            29: 'TLAXCALA',
-            30: 'VERACRUZ DE IGNACIO DE LA LLAVE',
-            31: 'YUCATAN',
-            32: 'ZACATECAS',
-            97: 'NO APLICA',
-            98: 'SE IGNORA',
-            99: 'NO ESPECIFICADO'
-        }
-
-        error_codes = {
-            97: 'NO APLICA',
-            98: 'SE IGNORA',
-            99: 'NO ESPECIFICADO'
-        }
-
-        for state in state_columns:
-            if df[state].isin(state_codes.keys()).any():
-                df[state] = df[state].replace(state_codes)
-
-                # Save the modified DataFrame back to JSON
-                df.to_json(json_file_path, orient="records", lines=True)
-                print(f"Formato de estado actualizado para la columna {state}")
         
-        # Update 'MUNICIPIO_RES' based on 'ENTIDAD_RES'
-        for state, municipalities in municipalities_per_state.items():
-            # Convert dictionary keys to float
-            municipalities_float = {float(k): v for k, v in municipalities.items()}
-            
-            if df['ENTIDAD_NAC'].isin([state]).any():
-                df.loc[df['ENTIDAD_NAC'] == state, 'MUNICIPIO_RES'] = df['MUNICIPIO_RES'].replace(municipalities_float)
-
-                if df['MUNICIPIO_RES'].isin(error_codes.keys()).any():
-                    df['MUNICIPIO_RES'] = df['MUNICIPIO_RES'].replace(error_codes)
-
-                # Save the modified DataFrame back to JSON
-                df.to_json(json_file_path, orient="records", lines=True)
-                print(f"Valores de 'MUNICIPIO_RES' actualizados para el estado {state}")
-
-        # Check and convert 'RESULTADO' column values
-        if df["RESULTADO"].isin([1, 2]).any():
-            df["RESULTADO"] = df["RESULTADO"].replace({1: 'Positivo', 2: 'Negativo'})
+        # Check and convert 'RESULTADO_LAB' column values
+        if df["RESULTADO_LAB"].isin([1, 2, 3, 4, 97]).any():
+            df["RESULTADO_LAB"] = df["RESULTADO_LAB"].replace({
+                1: 'Positivo', 
+                2: 'Negativo',
+                3: 'Pendiente',
+                4: 'Resultado no aplicable',
+                97: 'No se realizó la prueba'
+                })
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
-            print("Valores de 'RESULTADO' actualizados")
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'RESULTADO_LAB' actualizados")
+        
+        # # Check and convert 'RESULTADO_PCR' column values
+        # if df["RESULTADO_PCR"].isin([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 17, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 41, 997, 998, 999]).any():
+        #     df["RESULTADO_PCR"] = df["RESULTADO_PCR"].replace({
+        #         1: 'INFLUENZA AH1N1 PMD',
+        #         2: 'INFLUENZA A H1',
+        #         3: 'INFLUENZA A H3',
+        #         4: 'INFLUENZA B',
+        #         5: 'NEGATIVO',
+        #         6: 'MUESTRA NO ADECUADA',
+        #         7: 'ADENOVIRUS',
+        #         8: 'PARAINFLUENZA 1',
+        #         9: 'PARAINFLUENZA 2',
+        #         10: 'PARAINFLUENZA 3',
+        #         11: 'VIRUS SINCICIAL RESPIRATORIO',
+        #         13: 'INFLUENZA A NO SUBTIPIFICADA',
+        #         14: 'INFLUENZA A H5',
+        #         15: 'MUESTRA RECHAZADA',
+        #         17: 'MUESTRA SIN CELULAS',
+        #         20: 'VIRUS SINCICIAL RESPIRATORIO A',
+        #         21: 'VIRUS SINCICIAL RESPIRATORIO B',
+        #         22: 'CORONA 229E',
+        #         23: 'CORONA OC43',
+        #         24: 'CORONA SARS',
+        #         25: 'CORONA NL63',
+        #         26: 'CORONA HKU1',
+        #         27: 'MUESTRA QUE NO AMPLIFICO',
+        #         28: 'ENTEROV//RHINOVIRUS',
+        #         29: 'METAPNEUMOVIRUS',
+        #         30: 'MUESTRA SIN AISLAMIENTO',
+        #         32: 'PARAINFLUENZA 4',
+        #         33: 'MUESTRA SIN CELULAS',
+        #         34: 'SARS-CoV-2',
+        #         35: 'MERS-CoV',
+        #         36: 'SARS-CoV',
+        #         37: 'BOCAVIRUS',
+        #         41: 'MUESTRA NO RECIBIDA',
+        #         997: 'NO APLICA (CASO SIN MUESTRA)',
+        #         998: 'SIN COINFECCIÓN',
+        #         999: 'PENDIENTE'
+        #     })
 
+        #     # Save the modified DataFrame back to JSON
+        #     df.to_json(json_file_path, orient="records", lines=False, indent=4)
+        #     print("Valores de 'RESULTADO_PCR' actualizados")
+
+        # Check and convert 'RESULTADO_ANTIGENO' column values
+        if df["RESULTADO_ANTIGENO"].isin([1, 2, 97]).any():
+            df["RESULTADO_ANTIGENO"] = df["RESULTADO_ANTIGENO"].replace({
+                1: 'Positivo', 
+                2: 'Negativo',
+                97: 'No se realizó la prueba',
+                })
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'RESULTADO_ANTIGENO' actualizados")
+
+        # Check and convert 'CLASIFICACION_FINAL' column values
+        if df["CLASIFICACION_FINAL"].isin([1, 2, 3, 4, 5, 6, 7]).any():
+            df["CLASIFICACION_FINAL"] = df["CLASIFICACION_FINAL"].replace({
+                1: 'CASO DE COVID-19 CONFIRMADO POR ASOCIACIÓN CLÍNICA EPIDEMIOLÓGICA',
+                2: 'CASO DE COVID-19 CONFIRMADO POR COMITÉ DE  DICTAMINACIÓN',
+                3: 'CASO DE SARS-COV-2 CONFIRMADO',
+                4: 'INVÁLIDO POR LABORATORIO',
+                5: 'NO REALIZADO POR LABORATORIO',
+                6: 'CASO SOSPECHOSO',
+                7: 'NEGATIVO A SARS-COV-2',
+                })
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'CLASIFICACION_FINAL' actualizados")
+            
         # Check and convert 'SEXO' column values
-        if df["SEXO"].isin([1, 2]).any():
-            df["SEXO"] = df["SEXO"].replace({2: 'Hombre', 1: 'Mujer'})
+        if df["SEXO"].isin([1, 2, 99]).any():
+            df["SEXO"] = df["SEXO"].replace({2: 'Hombre', 1: 'Mujer', 99: 'No Especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'SEXO' actualizados")
         
         # Check and convert 'TIPO_PACIENTE' column values
-        if df["TIPO_PACIENTE"].isin([1, 2]).any():
-            df["TIPO_PACIENTE"] = df["TIPO_PACIENTE"].replace({1: 'Ambulatorio', 2: 'Hospitalizado'})
+        if df["TIPO_PACIENTE"].isin([1, 2, 99]).any():
+            df["TIPO_PACIENTE"] = df["TIPO_PACIENTE"].replace({1: 'Ambulatorio', 2: 'Hospitalizado', 99: 'No Especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'TIPO_PACIENTE' actualizados")
         
         # Check and convert 'INTUBADO' column values
@@ -246,7 +273,7 @@ def main():
             df["INTUBADO"] = df["INTUBADO"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'INTUBADO' actualizados")
         
         # Check and convert 'NEUMONIA' column values
@@ -254,7 +281,7 @@ def main():
             df["NEUMONIA"] = df["NEUMONIA"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'NEUMONIA' actualizados")
 
         # Check and convert 'EMBARAZO' column values
@@ -262,7 +289,7 @@ def main():
             df["EMBARAZO"] = df["EMBARAZO"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'EMBARAZO' actualizados")
 
         # Check and convert 'HABLA_LENGUA_INDIG' column values
@@ -270,15 +297,23 @@ def main():
             df["HABLA_LENGUA_INDIG"] = df["HABLA_LENGUA_INDIG"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'HABLA_LENGUA_INDIG' actualizados")
+
+        # Check and convert 'INDIGENA' column values
+        if df["INDIGENA"].isin([1, 2, 97, 98, 99]).any():
+            df["INDIGENA"] = df["INDIGENA"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'INDIGENA' actualizados")
 
         # Check and convert 'DIABETES' column values
         if df["DIABETES"].isin([1, 2, 97, 98, 99]).any():
             df["DIABETES"] = df["DIABETES"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'DIABETES' actualizados")
 
         # Check and convert 'EPOC' column values
@@ -286,7 +321,7 @@ def main():
             df["EPOC"] = df["EPOC"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'EPOC' actualizados")
 
         # Check and convert 'ASMA' column values
@@ -294,7 +329,7 @@ def main():
             df["ASMA"] = df["ASMA"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'ASMA' actualizados")
 
         # Check and convert 'INMUSUPR' column values
@@ -302,7 +337,7 @@ def main():
             df["INMUSUPR"] = df["INMUSUPR"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'INMUSUPR' actualizados")
         
         # Check and convert 'HIPERTENSION' column values
@@ -310,7 +345,7 @@ def main():
             df["HIPERTENSION"] = df["HIPERTENSION"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'HIPERTENSION' actualizados")
         
         # Check and convert 'OTRA_COM' column values
@@ -318,7 +353,7 @@ def main():
             df["OTRA_COM"] = df["OTRA_COM"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'OTRA_COM' actualizados")
         
         # Check and convert 'CARDIOVASCULAR' column values
@@ -326,7 +361,7 @@ def main():
             df["CARDIOVASCULAR"] = df["CARDIOVASCULAR"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'CARDIOVASCULAR' actualizados")
         
         # Check and convert 'OBESIDAD' column values
@@ -334,7 +369,7 @@ def main():
             df["OBESIDAD"] = df["OBESIDAD"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'OBESIDAD' actualizados")
         
         # Check and convert 'RENAL_CRONICA' column values
@@ -342,7 +377,7 @@ def main():
             df["RENAL_CRONICA"] = df["RENAL_CRONICA"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'RENAL_CRONICA' actualizados")
         
         # Check and convert 'TABAQUISMO' column values
@@ -350,7 +385,7 @@ def main():
             df["TABAQUISMO"] = df["TABAQUISMO"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'TABAQUISMO' actualizados")
         
         # Check and convert 'OTRO_CASO' column values
@@ -358,15 +393,31 @@ def main():
             df["OTRO_CASO"] = df["OTRO_CASO"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'OTRO_CASO' actualizados")
         
+        # Check and convert 'TOMA_MUESTRA_LAB' column values
+        if df["TOMA_MUESTRA_LAB"].isin([1, 2, 97, 98, 99]).any():
+            df["TOMA_MUESTRA_LAB"] = df["TOMA_MUESTRA_LAB"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'TOMA_MUESTRA_LAB' actualizados")
+
+        # Check and convert 'TOMA_MUESTRA_ANTIGENO' column values
+        if df["TOMA_MUESTRA_ANTIGENO"].isin([1, 2, 97, 98, 99]).any():
+            df["TOMA_MUESTRA_ANTIGENO"] = df["TOMA_MUESTRA_ANTIGENO"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
+
+            # Save the modified DataFrame back to JSON
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
+            print("Valores de 'TOMA_MUESTRA_ANTIGENO' actualizados")
+
         # Check and convert 'MIGRANTE' column values
         if df["MIGRANTE"].isin([1, 2, 97, 98, 99]).any():
             df["MIGRANTE"] = df["MIGRANTE"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'MIGRANTE' actualizados")
         
         # Check and convert 'UCI' column values
@@ -374,7 +425,7 @@ def main():
             df["UCI"] = df["UCI"].replace({1: 'Sí', 2: 'No', 97: 'No aplica', 98: 'Se ignora', 99: 'No especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'UCI' actualizados")
         
         # Check and conver 'ORIGEN' column values
@@ -382,7 +433,7 @@ def main():
             df["ORIGEN"] = df["ORIGEN"].replace({1: 'USMER', 2: 'Fuera de USMER', 99: 'No Especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'ORIGEN' actualizados")
         
         # Check and convert 'SECTOR' column values
@@ -401,19 +452,21 @@ def main():
                 11: 'SEMAR',
                 12: 'SSA',
                 13: 'UNIVERSITARIO',
+                14: 'CIJ',
+                15: 'IMSS Bienestar OPD',
                 99: 'No Especificado'
             })
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'SECTOR' actualizados")
         
         # Check and convert 'Nacionalidad' column values
-        if df["NACIONALIDAD"].isin([1, 2]).any():
-            df["NACIONALIDAD"] = df["NACIONALIDAD"].replace({1: 'Mexicana', 2: 'Extranjera'})
+        if df["NACIONALIDAD"].isin([1, 2, 99]).any():
+            df["NACIONALIDAD"] = df["NACIONALIDAD"].replace({1: 'Mexicana', 2: 'Extranjera', 99: 'No Especificado'})
 
             # Save the modified DataFrame back to JSON
-            df.to_json(json_file_path, orient="records", lines=True)
+            df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'NACIONALIDAD' actualizados")
         
             
