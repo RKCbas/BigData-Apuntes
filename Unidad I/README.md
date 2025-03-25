@@ -1,6 +1,7 @@
 # Búsquedas en Elasticsearch
 
 ## 1. Búsqueda Exacta (match)
+
 Busca documentos donde el campo "nombre" contenga exactamente "Juan Pérez".
 
 ```json
@@ -12,9 +13,11 @@ Busca documentos donde el campo "nombre" contenga exactamente "Juan Pérez".
   }
 }
 ```
+
 🔹 **Usos:** Búsquedas simples de texto o números.
 
 ## 2. Búsqueda con match_phrase (Coincidencia Exacta de Frase)
+
 Busca la frase "ingeniero de software" en el campo "ocupacion", asegurando que las palabras aparezcan juntas y en el mismo orden.
 
 ```json
@@ -26,9 +29,11 @@ Busca la frase "ingeniero de software" en el campo "ocupacion", asegurando que l
   }
 }
 ```
+
 🔹 **Usos:** Frases exactas, nombres completos.
 
 ## 3. Búsqueda de Varios Términos (multi_match)
+
 Busca "Juan Pérez" en varios campos (nombre y apellido).
 
 ```json
@@ -41,10 +46,13 @@ Busca "Juan Pérez" en varios campos (nombre y apellido).
   }
 }
 ```
+
 🔹 **Usos:** Cuando no sabemos en qué campo puede estar el valor.
 
 ## 4. Búsqueda con bool (Combinación de Condiciones)
+
 Busca personas que:
+
 - ✅ Sean de México
 - ✅ Sean ingenieros o doctores
 - ✅ No sean menores de 30 años
@@ -67,12 +75,15 @@ Busca personas que:
   }
 }
 ```
+
 🔹 **Explicación:**
+
 - **must** → Obligatorio.
 - **should** → Opcional, pero mejora el puntaje.
 - **must_not** → Excluye coincidencias.
 
 ## 5. Rango de Valores (range)
+
 Busca productos con precio entre 100 y 500.
 
 ```json
@@ -87,13 +98,16 @@ Busca productos con precio entre 100 y 500.
   }
 }
 ```
+
 🔹 **Comparadores:**
+
 - **gte (>=)** → Mayor o igual.
 - **lte (<=)** → Menor o igual.
 - **gt (>)** → Mayor estrictamente.
 - **lt (<)** → Menor estrictamente.
 
 ## 6. Búsqueda con exists (Verificar Si un Campo Existe)
+
 Encuentra documentos que tengan el campo "email".
 
 ```json
@@ -105,9 +119,11 @@ Encuentra documentos que tengan el campo "email".
   }
 }
 ```
+
 🔹 **Útil para:** Filtrar registros incompletos.
 
 ## 7. Búsqueda con wildcard (Patrón con *)
+
 Encuentra correos electrónicos que terminen en "@gmail.com".
 
 ```json
@@ -121,9 +137,11 @@ Encuentra correos electrónicos que terminen en "@gmail.com".
   }
 }
 ```
+
 🔹 **Wildcard:** * → Cualquier secuencia de caracteres.
 
 ## 8. Búsqueda con fuzzy (Corrección de Errores)
+
 Busca "juan" en el campo "nombre", pero también encuentra variaciones como "juann", "juhn".
 
 ```json
@@ -138,9 +156,11 @@ Busca "juan" en el campo "nombre", pero también encuentra variaciones como "jua
   }
 }
 ```
+
 🔹 **Útil para:** Corrección de errores tipográficos.
 
 ## 9. Filtrar con terms (Lista de Valores)
+
 Busca empleados con los IDs 1, 2 o 3.
 
 ```json
@@ -152,9 +172,11 @@ Busca empleados con los IDs 1, 2 o 3.
   }
 }
 ```
+
 🔹 **Más rápido que match para listas grandes.**
 
 ## 10. Filtrado con filter (Sin Recalcular Relevancia)
+
 Encuentra clientes de México con más de 30 años, optimizando rendimiento.
 
 ```json
@@ -169,9 +191,11 @@ Encuentra clientes de México con más de 30 años, optimizando rendimiento.
   }
 }
 ```
+
 🔹 **Diferencia con must:** filter no afecta la relevancia y es más rápido.
 
 ## 11. Agregaciones (aggregations)
+
 Cuenta cuántos empleados hay por país.
 
 ```json
@@ -184,9 +208,11 @@ Cuenta cuántos empleados hay por país.
   }
 }
 ```
+
 🔹 **Útil para:** Reportes y análisis de datos.
 
 ## 12. Combinando query y aggs
+
 Busca productos con "laptop" en el nombre y muestra el precio promedio.
 
 ```json
@@ -201,9 +227,11 @@ Busca productos con "laptop" en el nombre y muestra el precio promedio.
   }
 }
 ```
+
 🔹 **Útil para:** Filtrar y analizar al mismo tiempo.
 
 ## 13. Script para Actualización en Lote (bulk update)
+
 Cambia el estado de los pedidos 1, 2 y 3 a "entregado".
 
 ```json
@@ -219,8 +247,8 @@ Cambia el estado de los pedidos 1, 2 y 3 a "entregado".
   }
 }
 ```
-🔹 **Usado para:** Modificar varios documentos de una vez.
 
+🔹 **Usado para:** Modificar varios documentos de una vez.
 
 ## Resumen de Operadores
 
