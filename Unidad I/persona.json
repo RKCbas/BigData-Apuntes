@@ -1,3 +1,33 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:3813aadacfb690d9528b53b6d3774a08d6310fb7cb6036bfdd39491661810483
-size 860
+{
+    "id": "123456",
+    "name": "John Doe",
+    "firstname": "John",
+    "lastname": "Doe",
+    "age": 34,
+    "contact": {
+        "email": "john.doe@example.com",
+        "phone": "+1 555-1234"
+    },
+    "address": {
+        "city": "New York",
+        "state": "NY",
+        "country": "USA",
+        "street": "123 Main St",
+        "zipcode": "10001"
+    },
+    "occupation": {
+        "position": "Software Engineer",
+        "company_name": "TechCorp Inc.",
+        "salary": 900000.50,
+        "employment_type": "Full-Time",
+        "years_of_experience": 8,
+        "skills": ["Python", "Java", "Elasticsearch"],
+        "address": {
+            "city": "San Francisco",
+            "state": "CA",
+            "country": "USA",
+            "street": "456 Market St",
+            "zipcode": "94103"
+        }
+    }
+}
