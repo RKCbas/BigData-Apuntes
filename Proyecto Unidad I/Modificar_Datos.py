@@ -1,5 +1,5 @@
 import pandas as pd
-import os, json
+import os
 
 ENTIDADES_DICT = {
     1: "AGUASCALIENTES",
@@ -55,7 +55,7 @@ def main():
     
     json_file_path = "./Proyecto Unidad I/Datos.json"
     csv_file_path = "./Proyecto Unidad I/COVID19MEXICO2020.csv"
-    excel_catalog_path = "./Proyecto Unidad I/Catalogos.xlsx"
+    excel_catalog_path = "./Proyecto Unidad I/Catálogos.xlsx"
 
     try:
 
@@ -189,14 +189,14 @@ def main():
         #         5: 'NEGATIVO',
         #         6: 'MUESTRA NO ADECUADA',
         #         7: 'ADENOVIRUS',
-        #         8: 'PARAINFLUENZA 1',
-        #         9: 'PARAINFLUENZA 2',
-        #         10: 'PARAINFLUENZA 3',
+        #         8: 'INFLUENZA 1',
+        #         9: 'INFLUENZA 2',
+        #         10: 'INFLUENZA 3',
         #         11: 'VIRUS SINCICIAL RESPIRATORIO',
         #         13: 'INFLUENZA A NO SUBTIPIFICADA',
         #         14: 'INFLUENZA A H5',
         #         15: 'MUESTRA RECHAZADA',
-        #         17: 'MUESTRA SIN CELULAS',
+        #         17: 'MUESTRA SIN CÉLULAS',
         #         20: 'VIRUS SINCICIAL RESPIRATORIO A',
         #         21: 'VIRUS SINCICIAL RESPIRATORIO B',
         #         22: 'CORONA 229E',
@@ -208,8 +208,8 @@ def main():
         #         28: 'ENTEROV//RHINOVIRUS',
         #         29: 'METAPNEUMOVIRUS',
         #         30: 'MUESTRA SIN AISLAMIENTO',
-        #         32: 'PARAINFLUENZA 4',
-        #         33: 'MUESTRA SIN CELULAS',
+        #         32: 'INFLUENZA 4',
+        #         33: 'MUESTRA SIN CÉLULAS',
         #         34: 'SARS-CoV-2',
         #         35: 'MERS-CoV',
         #         36: 'SARS-CoV',
@@ -240,7 +240,7 @@ def main():
         if df["CLASIFICACION_FINAL"].isin([1, 2, 3, 4, 5, 6, 7]).any():
             df["CLASIFICACION_FINAL"] = df["CLASIFICACION_FINAL"].replace({
                 1: 'CASO DE COVID-19 CONFIRMADO POR ASOCIACIÓN CLÍNICA EPIDEMIOLÓGICA',
-                2: 'CASO DE COVID-19 CONFIRMADO POR COMITÉ DE  DICTAMINACIÓN',
+                2: 'CASO DE COVID-19 CONFIRMADO POR COMITÉ DE DICTAMINACIÓN',
                 3: 'CASO DE SARS-COV-2 CONFIRMADO',
                 4: 'INVÁLIDO POR LABORATORIO',
                 5: 'NO REALIZADO POR LABORATORIO',
@@ -428,7 +428,7 @@ def main():
             df.to_json(json_file_path, orient="records", lines=False, indent=4)
             print("Valores de 'UCI' actualizados")
         
-        # Check and conver 'ORIGEN' column values
+        # Check and convert 'ORIGEN' column values
         if df["ORIGEN"].isin([1, 2, 99]).any():
             df["ORIGEN"] = df["ORIGEN"].replace({1: 'USMER', 2: 'Fuera de USMER', 99: 'No Especificado'})
 
