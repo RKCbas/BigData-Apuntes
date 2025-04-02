@@ -134,7 +134,7 @@ def main():
         # Load the JSON file into a DataFrame
         df = pd.read_json(json_file_path, orient="records", lines=False)
 
-        # Check and convert 'PAIS_NACIONALIDAD' column values
+        # Check and convert 'PAIS_ORIGEN' column values
         if "97" in df["PAIS_ORIGEN"].values:
             df["PAIS_ORIGEN"] = 'No aplica'
             df.to_json(json_file_path, orient="records", lines=False, indent=4)
