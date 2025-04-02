@@ -2,11 +2,13 @@
 
 Primero se tiene el archivo Modificar_Datos.py que utiliza el archivo COVID19MEXICO2020.csv y modifica los datos y guarda todo en un .JSON, luego con main.py inserta los datos en ElasticSearch
 
-**NOTA:** Si es la primera vez que ejecutas el programa cambia el valor de load_data a "True"
+**NOTA:** Si es la primera vez que ejecutas el Modificar_Datos cambia el valor de load_data a "True"
+**NOTA:** Debido a que el dataset es muy grande se tiene que descargar y dejar con el nombre "COVID19MEXICO2020.csv" dentro de la carpeta Proyecto Unidad I
+LINK del DS: https://www.gob.mx/salud/documentos/datos-abiertos-152127
 
 ------------------------------------------------
 
-Sintaxys de Markdown
+Sintaxis de Markdown
 
  - Headings
 
@@ -42,7 +44,7 @@ Sintaxys de Markdown
 > Esto es una cita.
 >> Cita anidada.
 
- - Codigo
+ - Código
 
 `Este es un código en línea`
 
