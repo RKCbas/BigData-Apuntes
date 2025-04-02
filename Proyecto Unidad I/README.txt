@@ -58,7 +58,7 @@ console.log("Hola Mundo");
 [Texto del enlace](https://www.ejemplo.com)
 [Texto con título](https://www.ejemplo.com "Título opcional")
 
- - Imagenes
+ - Imágenes
 
 ![Texto alternativo](https://www.ejemplo.com/imagen.jpg)
 ![Texto con título](https://www.ejemplo.com/imagen.jpg "Título de la imagen")
