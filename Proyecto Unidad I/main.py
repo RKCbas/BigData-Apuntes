@@ -5,7 +5,7 @@ def main():
     try:
         # Create an instance of the ElasticSearchProvider class
         # and establish a connection with the ElasticSearch server
-        es_handler = ElasticSearchProvider(index="COVID-19")
+        es_handler = ElasticSearchProvider(index="covid-19")
         print("es_handler: ", es_handler, "\n")
 
         RESPONSE_LITERAL = "response: "
