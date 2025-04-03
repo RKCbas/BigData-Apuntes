@@ -11,12 +11,12 @@ class ElasticSearchProvider:
         #   self.password = str(password)
         self.index = index
         self.index_type = "_doc"
-        # Configurar timeout, reintentos y retry_on_timeout
+        # Configurar timeout, re-intentos y retry_on_timeout
         self.connection = Elasticsearch(
             self.host,
             timeout=30,  # Tiempo de espera en segundos
-            max_retries=3,  # Número máximo de reintentos
-            retry_on_timeout=True  # Reintentar si hay un timeout
+            max_retries=3,  # Número máximo de re-intentos
+            retry_on_timeout=True  # Re-intentar si hay un timeout
         )
 
     def __enter__(self):
