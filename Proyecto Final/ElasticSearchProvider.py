@@ -1,11 +1,13 @@
-import json, time, pandas as pd
+import os, json, time, pandas as pd
 from elasticsearch import *
 from elasticsearch import helpers
 from elasticsearch import Elasticsearch, ConnectionError
+from elasticsearch.helpers import BulkIndexError
 
 class ElasticSearchProvider:
     
     def __init__(self, index="person"):
+        index = index.lower()
         self.host = "http://localhost:9200"
         #   self.user = str(user)
         #   self.password = str(password)
@@ -14,7 +16,7 @@ class ElasticSearchProvider:
         # Configurar timeout, re-intentos y retry_on_timeout
         self.connection = Elasticsearch(
             self.host,
-            timeout=30,  # Tiempo de espera en segundos
+            timeout=60,  # Tiempo de espera en segundos
             max_retries=3,  # Número máximo de re-intentos
             retry_on_timeout=True  # Re-intentar si hay un timeout
         )
@@ -280,27 +282,39 @@ class ElasticSearchProvider:
                     })
             }
     
+    #For some reason does not works with datetime values
     def load_json_file(self, file_path, batch_size=1000):
         try:
+            print(f"Loading JSON file: {file_path}")
+            ## Verificar si el archivo existe
+            if not os.path.isfile(file_path):
+                raise FileNotFoundError(f"File not found: {file_path}")
+            
             # Leer el archivo JSON usando pandas
-            df = pd.read_json(file_path, orient="records", lines=False)
+            df = pd.read_json(file_path, lines=True, orient="records")
 
             # Convertir el DataFrame a una lista de diccionarios
             documents = df.to_dict(orient="records")
-            
+
             # Dividir los documentos en lotes
             for i in range(0, len(documents), batch_size):
                 batch = documents[i:i + batch_size]
-                
+
+                for i in range(5):
+                    print(f"Document {i}: {batch[i]}")
+
                 # Preparar los datos para la operación bulk
                 bulk_data = [
                     {"_index": self.index, "_source": doc}
                     for doc in batch
                 ]
                 
-                # Insertar los documentos en Elasticsearch
-                helpers.bulk(self.connection, bulk_data)
-            
+                try:
+                    helpers.bulk(self.connection, bulk_data)
+                except BulkIndexError as e:
+                    for error in e.errors:
+                        print(f"Error al indexar documento: {error}")
+                
             return f"{len(documents)} documents inserted in {self.index}"
         
         except ValueError as e:
