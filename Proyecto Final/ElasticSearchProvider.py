@@ -116,7 +116,7 @@ class ElasticSearchProvider:
                     })
             }
 
-    def search_document(self, query):
+    def search(self, query):
         try:
             response = self.connection.search(index=self.index, body=query)
             return response
