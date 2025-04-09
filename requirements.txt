@@ -1,0 +1,7 @@
+numpy==2.2.0
+pandas==2.2.3
+elasticsearch==8.17.2
+matplotlib==3.10.1
+datashader==0.16.0
+cartopy==0.24
+jupyterlab==3.6.0
