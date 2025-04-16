@@ -12,9 +12,36 @@
       "End_Lng": { "type": "float", "null_value": null },
       "Distance(mi)": { "type": "float", "null_value": -1 },
       "Description": { "type": "text" },
-      "Street": { "type": "keyword", "null_value": "Unknown" },
-      "City": { "type": "keyword", "null_value": "Unknown" },
-      "County": { "type": "keyword", "null_value": "Unknown" },
+      "Street": { 
+        "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            },
+        "null_value": "Unknown"
+      },
+      "City": { 
+        "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            },
+        "null_value": "Unknown"
+      },
+      "County": { 
+        "type": "text",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            },
+        "null_value": "Unknown"
+      },
       "State": { "type": "keyword", "null_value": "Unknown" },
       "Zipcode": { "type": "keyword", "null_value": "00000" },
       "Country": { "type": "keyword", "null_value": "Unknown" },
