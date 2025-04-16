@@ -23,7 +23,7 @@ Siga los pasos a continuación para configurar y ejecutar el proyecto en su sist
     python -m venv .venv
     ```
 
-3. Active el entorno virtual:
+3. Active el entorno virtual(Opcional):
     - En Windows:
 
       ```bash
